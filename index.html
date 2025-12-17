@@ -16,13 +16,14 @@
             --accent-blue: #007aff;
             --accent-green: #34c759;
             --accent-red: #ff3b30;
+            --accent-orange: #ff9500;
             --shadow-card: 0 4px 24px rgba(0,0,0,0.06);
         }
 
         body {
             margin: 0;
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", Roboto, sans-serif;
-            background: #f2f2f7; /* macOS Light Grey */
+            background: #f2f2f7; 
             color: var(--text-main);
             height: 100vh;
             display: flex;
@@ -105,10 +106,13 @@
             align-items: center;
             gap: 8px;
             box-shadow: var(--shadow-card);
+            transition: all 0.3s ease;
         }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #ccc; transition: all 0.3s ease; }
+        
         .dot.live { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); animation: pulse 2s infinite; }
-        .dot.error { background: var(--accent-red); }
+        .dot.offline { background: var(--text-muted); }
+        .dot.error { background: var(--accent-red); box-shadow: 0 0 10px var(--accent-red); }
 
         /* --- CARDS GRID --- */
         .kpi-grid {
@@ -125,7 +129,10 @@
             box-shadow: var(--shadow-card);
             position: relative;
             overflow: hidden;
+            transition: opacity 0.3s;
         }
+
+        .card.disabled { opacity: 0.6; }
 
         .card-title { font-size: 0.8rem; text-transform: uppercase; color: var(--text-muted); font-weight: 600; letter-spacing: 0.5px; }
         .card-value { font-size: 2.5rem; font-weight: 700; margin-top: 5px; }
@@ -179,13 +186,14 @@
             align-items: center; justify-content: center;
             z-index: 5;
             backdrop-filter: blur(5px);
-            transition: opacity 0.5s;
+            transition: opacity 0.3s;
         }
         .overlay.hidden { opacity: 0; pointer-events: none; }
+        
         .spinner {
             width: 30px; height: 30px; border: 3px solid #ddd;
             border-top-color: var(--accent-blue); border-radius: 50%;
-            animation: spin 1s linear infinite; margin-bottom: 10px;
+            animation: spin 1s linear infinite; margin-bottom: 15px;
         }
 
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -223,28 +231,28 @@
                 <h1>Overview</h1>
                 <p class="sub-head">Electromechanical Performance Monitor</p>
             </div>
-            <div class="status-pill">
-                <div class="dot" id="conn-dot"></div>
-                <span id="conn-text">Connecting to ESP32...</span>
+            <div class="status-pill" id="status-pill">
+                <div class="dot offline" id="conn-dot"></div>
+                <span id="conn-text">Checking Status...</span>
             </div>
         </header>
 
         <div id="view-dashboard" class="view-section active-view">
             
             <div class="kpi-grid">
-                <div class="card">
+                <div class="card" id="card-v">
                     <div class="card-title">Voltage</div>
                     <div class="card-value"><span id="val-v">--</span><span class="card-unit">V</span></div>
                 </div>
-                <div class="card">
+                <div class="card" id="card-i">
                     <div class="card-title">Current</div>
                     <div class="card-value"><span id="val-i">--</span><span class="card-unit">A</span></div>
                 </div>
-                <div class="card">
+                <div class="card" id="card-rpm">
                     <div class="card-title">Speed</div>
                     <div class="card-value"><span id="val-rpm">--</span><span class="card-unit">RPM</span></div>
                 </div>
-                <div class="card">
+                <div class="card" id="card-p">
                     <div class="card-title">Power</div>
                     <div class="card-value"><span id="val-p">--</span><span class="card-unit">W</span></div>
                 </div>
@@ -253,16 +261,16 @@
             <div class="chart-container">
                 <div class="overlay" id="chart-overlay">
                     <div class="spinner"></div>
-                    <span>Waiting for data stream...</span>
+                    <span id="overlay-text">Searching for Device...</span>
                 </div>
                 <canvas id="motorChart"></canvas>
             </div>
 
-            <div class="feedback-panel" id="diag-panel">
-                <div class="icon-box" id="diag-icon">ℹ️</div>
+            <div class="feedback-panel" id="diag-panel" style="background: #86868b;">
+                <div class="icon-box" id="diag-icon">?</div>
                 <div>
-                    <h3 style="margin:0; font-size:1.1rem;" id="diag-title">System Standby</h3>
-                    <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.9;" id="diag-msg">Waiting for initialization...</p>
+                    <h3 style="margin:0; font-size:1.1rem;" id="diag-title">Device Offline</h3>
+                    <p style="margin:5px 0 0; font-size:0.9rem; opacity:0.9;" id="diag-msg">Please power on the ESP32 to begin streaming data.</p>
                 </div>
             </div>
         </div>
@@ -299,31 +307,27 @@
         // --- GLOBAL VARIABLES ---
         let isConnected = false;
         let chartInstance = null;
-        let sessionLogs = [];
+        let lastLogState = "Offline";
 
         // --- INITIALIZATION ---
         window.onload = function() {
             initChart();
-            setInterval(fetchData, 1500); // Fetch every 1.5s
-            fetchData(); // Initial call
+            // Check connection every 2 seconds
+            setInterval(fetchData, 2000); 
+            fetchData(); // Run immediately
         };
 
         // --- TAB SWITCHING ---
         function switchTab(viewName, btnEl) {
-            // Update Menu
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             btnEl.classList.add('active');
-
-            // Update View
             document.querySelectorAll('.view-section').forEach(v => v.classList.remove('active-view'));
             document.getElementById('view-' + viewName).classList.add('active-view');
         }
 
-        // --- CHART.JS SETUP ---
+        // --- CHART SETUP ---
         function initChart() {
             const ctx = document.getElementById('motorChart').getContext('2d');
-            
-            // Gradient fill
             let gradient = ctx.createLinearGradient(0, 0, 0, 400);
             gradient.addColorStop(0, 'rgba(0, 122, 255, 0.2)');
             gradient.addColorStop(1, 'rgba(0, 122, 255, 0)');
@@ -333,7 +337,7 @@
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Power (Watts)',
+                        label: 'Power (W)',
                         data: [],
                         borderColor: '#007aff',
                         backgroundColor: gradient,
@@ -343,7 +347,7 @@
                     }, {
                         label: 'RPM',
                         data: [],
-                        borderColor: '#af52de', // Purple
+                        borderColor: '#af52de',
                         borderWidth: 2,
                         borderDash: [5, 5],
                         fill: false,
@@ -354,28 +358,34 @@
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    animation: false, // Disable animation for smoother live updates
+                    animation: false,
                     interaction: { mode: 'index', intersect: false },
                     scales: {
-                        x: { display: false }, // Hide time labels for cleanliness
-                        y: { beginAtZero: true, title: {display: true, text: 'Power (W)'} },
-                        y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grid: {drawOnChartArea: false}, title: {display: true, text: 'RPM'} }
+                        x: { display: false },
+                        y: { beginAtZero: true },
+                        y1: { type: 'linear', display: true, position: 'right', beginAtZero: true, grid: {drawOnChartArea: false} }
                     }
                 }
             });
         }
 
-        // --- DATA FETCHING ---
+        // --- CORE DATA FETCHING ---
         async function fetchData() {
             try {
-                // Parallel Fetch
+                // 1. CHECK HARDWARE STATUS FIRST
+                const statusRes = await fetch(`https://${BLYNK_REGION}/external/api/isHardwareConnected?token=${BLYNK_AUTH}`);
+                const isHardwareOnline = await statusRes.json(); // returns true or false
+
+                if (!isHardwareOnline) {
+                    throw new Error("Hardware Offline");
+                }
+
+                // 2. IF ONLINE, FETCH VALUES
                 const [vRes, iRes, rpmRes] = await Promise.all([
                     fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_VOLTAGE}`),
                     fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_CURRENT}`),
                     fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_RPM}`)
                 ]);
-
-                if (!vRes.ok) throw new Error("Connection failed");
 
                 const v = parseFloat(await vRes.text()) || 0;
                 const i = parseFloat(await iRes.text()) || 0;
@@ -385,31 +395,73 @@
                 setConnectionState(true);
 
             } catch (error) {
-                console.warn(error);
+                console.log("Device Check:", error.message);
                 setConnectionState(false);
             }
         }
 
-        // --- UI UPDATE ENGINE ---
+        // --- UI UPDATES ---
+        function setConnectionState(online) {
+            const dot = document.getElementById('conn-dot');
+            const txt = document.getElementById('conn-text');
+            const overlay = document.getElementById('chart-overlay');
+            const cards = document.querySelectorAll('.card');
+
+            if (online) {
+                // Only update if state changed
+                if (!isConnected) {
+                    dot.className = "dot live";
+                    txt.innerText = "System Online";
+                    txt.style.color = "#34c759";
+                    overlay.classList.add('hidden');
+                    cards.forEach(c => c.classList.remove('disabled'));
+                    isConnected = true;
+                    if(lastLogState !== "Online") addLog("Connection", "Device connected successfully.");
+                    lastLogState = "Online";
+                }
+            } else {
+                dot.className = "dot error";
+                txt.innerText = "Device Offline";
+                txt.style.color = "#ff3b30";
+                
+                // Show loading overlay
+                overlay.classList.remove('hidden');
+                document.getElementById('overlay-text').innerText = "Searching for P2G01 Kit...";
+                
+                // Dim cards
+                cards.forEach(c => c.classList.add('disabled'));
+                
+                // Reset Diagnostics panel
+                const panel = document.getElementById('diag-panel');
+                panel.style.background = "#86868b";
+                document.getElementById('diag-title').innerText = "Connection Lost";
+                document.getElementById('diag-msg').innerText = "Ensure ESP32 is powered on and connected to WiFi.";
+                document.getElementById('diag-icon').innerText = "🔌";
+
+                isConnected = false;
+                if(lastLogState !== "Offline") {
+                    addLog("Connection", "Device disconnected / Signal lost.");
+                    lastLogState = "Offline";
+                }
+            }
+        }
+
         function updateUI(v, i, rpm) {
             const p = v * i;
 
-            // 1. Update Numbers
+            // Numbers
             document.getElementById('val-v').innerText = v.toFixed(2);
             document.getElementById('val-i').innerText = i.toFixed(2);
             document.getElementById('val-rpm').innerText = rpm.toFixed(0);
             document.getElementById('val-p').innerText = p.toFixed(2);
 
-            // 2. Update Graph
+            // Graph
             if (chartInstance) {
                 const now = new Date().toLocaleTimeString();
-                
-                // Add new data
                 chartInstance.data.labels.push(now);
-                chartInstance.data.datasets[0].data.push(p); // Power
-                chartInstance.data.datasets[1].data.push(rpm); // RPM
+                chartInstance.data.datasets[0].data.push(p);
+                chartInstance.data.datasets[1].data.push(rpm);
 
-                // Keep only last 20 points
                 if (chartInstance.data.labels.length > 20) {
                     chartInstance.data.labels.shift();
                     chartInstance.data.datasets[0].data.shift();
@@ -418,38 +470,8 @@
                 chartInstance.update();
             }
 
-            // 3. Remove Loading Overlay
-            document.getElementById('chart-overlay').classList.add('hidden');
-
-            // 4. Run Logic
             analyzeSystem(v, i, rpm, p);
         }
-
-        // --- CONNECTION STATE ---
-        function setConnectionState(online) {
-            const dot = document.getElementById('conn-dot');
-            const txt = document.getElementById('conn-text');
-            const overlay = document.getElementById('chart-overlay');
-
-            if (online) {
-                if (!isConnected) { // Just came online
-                    dot.className = "dot live";
-                    txt.innerText = "System Online";
-                    txt.style.color = "#34c759";
-                    isConnected = true;
-                }
-            } else {
-                dot.className = "dot error";
-                txt.innerText = "Connection Lost";
-                txt.style.color = "#ff3b30";
-                overlay.classList.remove('hidden'); // Show loading spinner
-                overlay.querySelector('span').innerText = "Reconnecting...";
-                isConnected = false;
-            }
-        }
-
-        // --- EXPERT LOGIC & LOGGING ---
-        let lastState = ""; 
 
         function analyzeSystem(v, i, rpm, p) {
             const panel = document.getElementById('diag-panel');
@@ -458,48 +480,43 @@
             const icon = document.getElementById('diag-icon');
 
             let state = "Nominal";
-            let color = "linear-gradient(135deg, #007aff 0%, #005ecb 100%)"; // Blue
+            let color = "linear-gradient(135deg, #007aff 0%, #005ecb 100%)";
             let ico = "✅";
             let message = "System operating within normal parameters.";
 
-            // Logic
             if (v < 0.5) {
                 state = "Idle";
-                color = "#8e8e93"; // Gray
+                color = "#8e8e93"; 
                 ico = "💤";
                 message = "Power supply disconnected. System is idle.";
             } 
             else if (i > 1.5 && rpm < 50) {
                 state = "CRITICAL STALL";
-                color = "linear-gradient(135deg, #ff3b30 0%, #d63228 100%)"; // Red
+                color = "linear-gradient(135deg, #ff3b30 0%, #d63228 100%)";
                 ico = "⚠️";
                 message = "Rotor locked! High current detected. Power off immediately.";
             } 
             else if (v > 4.0 && rpm === 0) {
                 state = "Startup Fail";
-                color = "linear-gradient(135deg, #ff9500 0%, #e08600 100%)"; // Orange
+                color = "linear-gradient(135deg, #ff9500 0%, #e08600 100%)";
                 ico = "⚡";
                 message = "Voltage applied but no rotation. Check brushes or friction.";
             }
             else if (rpm > 200 && i < 0.3) {
                 state = "High Efficiency";
-                color = "linear-gradient(135deg, #34c759 0%, #248a3d 100%)"; // Green
+                color = "linear-gradient(135deg, #34c759 0%, #248a3d 100%)";
                 ico = "🍃";
                 message = "Motor running efficiently with high Back-EMF.";
             }
 
-            // Update Panel
             panel.style.background = color;
             title.innerText = state;
-            msg.innerText = message;
+            msg.innerHTML = message;
             icon.innerText = ico;
 
-            // Log if state changes
-            if (state !== lastState && state !== "Nominal" && state !== "Idle") {
-                addLog(state, message);
-                lastState = state;
-            } else if (state === "Nominal") {
-                lastState = state;
+            if (state !== lastLogState && state !== "Nominal" && state !== "Idle") {
+                addLog("System Alert", `${state}: ${message.replace(/<[^>]*>?/gm, '')}`);
+                lastLogState = state;
             }
         }
 
@@ -515,8 +532,6 @@
                 <td>${details}</td>
                 <td><span style="background:#eee; padding:4px 8px; border-radius:4px; font-size:0.8rem;">Logged</span></td>
             `;
-            
-            // Add to top
             tbody.insertBefore(row, tbody.firstChild);
         }
     </script>
