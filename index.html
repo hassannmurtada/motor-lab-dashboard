@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>P2G01 Motor Lab</title>
+    <style>
+        /* Apple-style Design Tokens */
+        :root {
+            --bg-color: #F5F5F7;
+            --card-bg: rgba(255, 255, 255, 0.7);
+            --text-primary: #1D1D1F;
+            --text-secondary: #86868B;
+            --accent-blue: #007AFF;
+            --accent-orange: #FF9500;
+            --accent-red: #FF3B30;
+            --accent-green: #34C759;
+            --glass-border: 1px solid rgba(255, 255, 255, 0.5);
+            --shadow: 0 18px 40px rgba(0, 0, 0, 0.04);
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            margin: 0;
+            padding: 40px 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 50px;
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        h1 {
+            font-weight: 600;
+            font-size: 2.8rem;
+            margin: 0;
+            letter-spacing: -0.02em;
+        }
+
+        p.subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            font-weight: 400;
+            margin-top: 8px;
+        }
+
+        /* Dashboard Grid */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+            width: 100%;
+            max-width: 1000px;
+            animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Glassmorphism Cards */
+        .card {
+            background: var(--card-bg);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+            border: var(--glass-border);
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 25px 50px rgba(0,0,0,0.08);
+            background: rgba(255, 255, 255, 0.85);
+        }
+
+        .card-header {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .value-display {
+            font-size: 3.8rem;
+            font-weight: 600;
+            letter-spacing: -0.04em;
+            display: flex;
+            align-items: baseline;
+            color: var(--text-primary);
+        }
+
+        .unit {
+            font-size: 1.4rem;
+            color: var(--text-secondary);
+            margin-left: 6px;
+            font-weight: 500;
+        }
+
+        /* Intelligent Feedback Section */
+        .feedback-card {
+            grid-column: 1 / -1;
+            background: #ffffff;
+            border-left: 6px solid var(--accent-blue);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .feedback-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: var(--accent-blue);
+            font-weight: 600;
+            font-size: 1.1rem;
+            margin-bottom: 8px;
+        }
+
+        #ai-feedback-text {
+            font-size: 1.2rem;
+            line-height: 1.5;
+            color: var(--text-primary);
+            font-weight: 400;
+        }
+
+        /* Status Dot Animation */
+        .status-dot {
+            height: 10px;
+            width: 10px;
+            background-color: var(--accent-green);
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7);
+            animation: pulse-green 2s infinite;
+        }
+
+        /* Animations */
+        @keyframes pulse-green {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(52, 199, 89, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(52, 199, 89, 0); }
+        }
+
+        @keyframes pulse-red {
+            0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0.7); }
+            70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(255, 59, 48, 0); }
+            100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(255, 59, 48, 0); }
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Dynamic Status Classes */
+        .status-dot.offline { background-color: var(--text-secondary); animation: none; }
+        .status-dot.warning { background-color: var(--accent-orange); animation: none; }
+        .status-dot.danger { background-color: var(--accent-red); animation: pulse-red 2s infinite; }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            .value-display { font-size: 2.8rem; }
+            h1 { font-size: 2rem; }
+            .card { padding: 24px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>P2G01 Motor Lab</h1>
+        <p class="subtitle">Real-time Electromechanical Analysis</p>
+    </header>
+
+    <div class="dashboard-grid">
+        <div class="card">
+            <div class="card-header">Terminal Voltage</div>
+            <div class="value-display">
+                <span id="val-voltage">--</span><span class="unit">V</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Current Draw</div>
+            <div class="value-display">
+                <span id="val-current">--</span><span class="unit">A</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Rotational Speed</div>
+            <div class="value-display">
+                <span id="val-rpm">--</span><span class="unit">RPM</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">Power Input</div>
+            <div class="value-display">
+                <span id="val-power">--</span><span class="unit">W</span>
+            </div>
+        </div>
+
+        <div class="card feedback-card" id="feedback-container">
+            <div class="feedback-title" id="feedback-title">
+                <span class="status-dot" id="system-status"></span>
+                System Diagnostics
+            </div>
+            <p id="ai-feedback-text">Initializing connection to P2G01 Kit...</p>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // CONFIGURATION (Auto-filled)
+        // ==========================================
+        const BLYNK_AUTH = "iagxsAFxs8gDX9dFuZIRFeXNTA9XQKGV"; 
+        const BLYNK_REGION = "blynk.cloud"; 
+        
+        // Pins from your ESP32 Logic
+        const PIN_VOLTAGE = "V0"; 
+        const PIN_CURRENT = "V1"; 
+        const PIN_RPM = "V2";
+        // ==========================================
+
+        async function fetchBlynkData() {
+            try {
+                // Fetch data from Blynk Cloud API
+                const [vRes, iRes, rpmRes] = await Promise.all([
+                    fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_VOLTAGE}`),
+                    fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_CURRENT}`),
+                    fetch(`https://${BLYNK_REGION}/external/api/get?token=${BLYNK_AUTH}&${PIN_RPM}`)
+                ]);
+
+                // Parse Text to Float
+                const voltage = parseFloat(await vRes.text()) || 0;
+                const current = parseFloat(await iRes.text()) || 0;
+                const rpm = parseFloat(await rpmRes.text()) || 0;
+
+                updateUI(voltage, current, rpm);
+
+            } catch (error) {
+                console.error("Fetch Error:", error);
+                setFeedback("offline", "Connection Lost", "Unable to reach Blynk Cloud. Check internet connection.");
+            }
+        }
+
+        function updateUI(v, i, rpm) {
+            // Update Numerical Cards
+            document.getElementById('val-voltage').innerText = v.toFixed(2);
+            document.getElementById('val-current').innerText = i.toFixed(2);
+            document.getElementById('val-rpm').innerText = rpm.toFixed(0);
+            
+            // Calculate Power locally (P = V * I)
+            const power = v * i;
+            document.getElementById('val-power').innerText = power.toFixed(2);
+
+            // Run Expert Logic
+            analyzeMotorPerformance(v, i, rpm, power);
+        }
+
+        function analyzeMotorPerformance(v, i, rpm, power) {
+            // Logic derived from P2G01 Educational Kit Context
+            
+            // 1. SYSTEM IDLE
+            if (v < 0.5) {
+                setFeedback("offline", "System Idle", "Power supply is disconnected. Turn on the 12V adapter to begin.");
+                return;
+            }
+
+            // 2. STALL CONDITION (Dangerous)
+            // High Current (>1.5A) but Low RPM (<50)
+            if (i > 1.5 && rpm < 50) {
+                setFeedback("danger", "⚠️ STALL DETECTED", 
+                    "Rotor is locked! High current is generating heat but no torque. <br>• Check brush alignment.<br>• Remove mechanical blockages immediately.");
+                return;
+            }
+
+            // 3. STARTUP ISSUE / HIGH RESISTANCE
+            // Voltage is present (>4V), but RPM is 0 and Current is low
+            if (v > 4.0 && rpm === 0 && i < 0.5) {
+                setFeedback("warning", "Open Circuit / High Friction", 
+                    "Voltage applied but motor is not spinning.<br>• Check if brushes are touching the commutator.<br>• Give the rotor a gentle push to overcome static friction.");
+                return;
+            }
+
+            // 4. EFFICIENT RUNNING (No Load)
+            // Spinning fast with low current
+            if (rpm > 200 && i < 0.3) {
+                setFeedback("warning", "High Efficiency (No Load)", 
+                    "Motor is running freely. High Back-EMF is opposing the supply voltage, naturally limiting current draw. Ideally, add a load to observe torque.");
+                return;
+            }
+
+            // 5. NOMINAL OPERATION
+            setFeedback("nominal", "System Nominal", 
+                `Motor is operating normally.<br>• Electrical Power: <strong>${power.toFixed(2)} W</strong><br>• Energy Conversion: Electrical ➝ Kinetic + Heat`);
+        }
+
+        function setFeedback(statusType, title, message) {
+            const container = document.getElementById('feedback-container');
+            const statusDot = document.getElementById('system-status');
+            const titleEl = document.getElementById('feedback-title');
+            const textEl = document.getElementById('ai-feedback-text');
+
+            // Reset classes
+            statusDot.className = "status-dot";
+            
+            // Apply styles based on state
+            let color = "#007AFF"; // Default Blue
+            if (statusType === "danger") {
+                statusDot.classList.add("danger");
+                color = "#FF3B30";
+            } else if (statusType === "warning") {
+                statusDot.classList.add("warning");
+                color = "#FF9500"; // Orange
+                if (title.includes("Efficiency")) color = "#34C759"; // Green for efficiency
+            } else if (statusType === "offline") {
+                statusDot.classList.add("offline");
+                color = "#86868B";
+            }
+
+            container.style.borderLeftColor = color;
+            titleEl.style.color = color;
+            titleEl.innerHTML = `<span class="status-dot ${statusType}" id="system-status"></span> ${title}`;
+            textEl.innerHTML = message;
+        }
+
+        // Auto-refresh every 1.5 seconds
+        setInterval(fetchBlynkData, 1500);
+        fetchBlynkData();
+    </script>
+</body>
+</html>
