@@ -291,6 +291,12 @@
                     <div class="metric-label">Rotor Speed</div>
                     <div class="metric-val"><span id="val-rpm">--</span><span class="metric-unit">RPM</span></div>
                 </div>
+                
+                <div class="metric-card" style="border-color: rgba(255, 214, 10, 0.3);">
+                    <div class="metric-label" style="color: var(--accent-amber)">Est. Torque</div>
+                    <div class="metric-val" style="color: var(--accent-amber)"><span id="val-t">--</span><span class="metric-unit">Nm</span></div>
+                </div>
+
                 <div class="metric-card" style="border-color: rgba(191, 90, 242, 0.3);">
                     <div class="metric-label" style="color: var(--accent-purple)">Power Output</div>
                     <div class="metric-val" style="color: var(--accent-purple)"><span id="val-p">--</span><span class="metric-unit">W</span></div>
@@ -431,8 +437,6 @@
                 const heartbeat = parseInt(data.V3) || 0;
 
                 // HEARTBEAT CHECK
-                // If the V3 value hasn't changed from the last fetch, 
-                // it means ESP32 stopped updating it.
                 if (heartbeat !== lastHeartbeatValue) {
                     lastHeartbeatTime = Date.now(); // Update "Alive" timestamp
                     lastHeartbeatValue = heartbeat;
@@ -459,7 +463,21 @@
             const dot = document.getElementById('status-dot');
             const txt = document.getElementById('status-text');
             const overlay = document.getElementById('chart-overlay');
+            
+            // MATH
             const p = v * i;
+            
+            // Calculate Torque: T = (Power * Efficiency) / AngularVelocity
+            // Efficiency assumed 60% (0.6) for standard kit motors
+            const rads = rpm * 0.10472;
+            let torque = 0;
+            
+            if (rads > 1.0) {
+                torque = (p * 0.6) / rads;
+            } else if (i > 0.5) {
+                // Stall condition approximation (optional, kept simple here as 0)
+                torque = 0; 
+            }
 
             if (online) {
                 isOnline = true;
@@ -473,6 +491,7 @@
                 document.getElementById('val-i').innerText = i.toFixed(2);
                 document.getElementById('val-rpm').innerText = rpm.toFixed(0);
                 document.getElementById('val-p').innerText = p.toFixed(2);
+                document.getElementById('val-t').innerText = torque.toFixed(3); // NEW
 
                 // Update Chart
                 const now = new Date().toLocaleTimeString();
@@ -487,7 +506,7 @@
                 }
                 chartInstance.update();
 
-                analyzePhysics(v, i, rpm, p);
+                analyzePhysics(v, i, rpm, p, torque);
 
             } else {
                 isOnline = false;
@@ -502,7 +521,7 @@
         }
 
         // --- THE PROFESSOR ENGINE ---
-        function analyzePhysics(v, i, rpm, p) {
+        function analyzePhysics(v, i, rpm, p, t) {
             const panel = document.getElementById('edu-panel');
             const formulaBox = document.getElementById('formula-box');
             
@@ -518,7 +537,7 @@
             else if (i > 1.5 && rpm < 50) {
                 // STALL
                 setPanel("Locked Rotor (Stall)", "CRITICAL", 
-                    "Rotor is stationary. <strong>Back-EMF is Zero</strong>. The motor acts as a purely resistive load, causing current to spike according to Ohm's Law. High risk of coil burnout.", 
+                    "Rotor is stationary. <strong>Back-EMF is Zero</strong>. The motor acts as a purely resistive load, causing current to spike. Torque is at maximum (Stall Torque).", 
                     "#ff453a");
                 panel.style.borderLeft = "4px solid #ff453a";
                 formulaBox.innerHTML = `
@@ -530,24 +549,24 @@
             else if (rpm > 200 && i < 0.3) {
                 // HIGH EFFICIENCY
                 setPanel("High Efficiency State", "NOMINAL", 
-                    "Motor is spinning freely. The rotating armature generates a high <strong>Back-EMF</strong> (Electromotive Force) that opposes the supply voltage, naturally limiting the current draw.", 
+                    "Motor is spinning freely. The rotating armature generates a high <strong>Back-EMF</strong> that opposes the supply voltage, limiting current draw. Torque is low.", 
                     "#30d158");
                  panel.style.borderLeft = "4px solid #30d158";
                  formulaBox.innerHTML = `
                     <span style="color:#30d158">Back-EMF Effect:</span><br>
                     V = I R + E<sub>b</sub><br>
-                    Current is minimized as E<sub>b</sub> &approx; V
+                    &tau; &approx; 0 Nm
                 `;
             }
             else {
                 // LOADED
                 setPanel("Operational Load", "RUNNING", 
-                    `Motor is converting Electrical Power (${p.toFixed(1)}W) into Mechanical Torque and Kinetic Energy. Current is proportional to the torque load.`, 
+                    `Motor is converting Electrical Power (${p.toFixed(1)}W) into Mechanical Torque (${t ? t.toFixed(3) : 0} Nm). Current increases to provide required torque.`, 
                     "#00d2ff");
                 panel.style.borderLeft = "4px solid #00d2ff";
                 formulaBox.innerHTML = `
                     P<sub>in</sub> = V &times; I<br>
-                    P<sub>out</sub> = &tau; &times; &omega;
+                    &tau; = (P<sub>in</sub> &times; &eta;) / &omega;
                 `;
             }
         }
@@ -565,7 +584,6 @@
             
             const panel = document.getElementById('edu-panel');
             panel.style.borderColor = color;
-            // panel.style.boxShadow = `0 0 20px ${color}20`; // subtle glow
             
             const pbox = document.getElementById('formula-box');
             pbox.style.borderLeftColor = color;
