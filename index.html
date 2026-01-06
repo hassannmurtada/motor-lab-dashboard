@@ -36,205 +36,51 @@
         }
 
         /* --- LAYOUT --- */
-        .app-container {
-            display: flex;
-            height: 100%;
-            max-width: 1600px;
-            margin: 0 auto;
-            width: 100%;
-        }
-
-        /* --- SIDEBAR (Context & Controls) --- */
-        .sidebar {
-            width: 320px;
-            background: rgba(10, 10, 12, 0.5);
-            border-right: var(--border);
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            backdrop-filter: blur(20px);
-            z-index: 10;
-        }
-
-        .brand {
-            font-family: var(--font-stack);
-            font-size: 0.9rem;
-            letter-spacing: 1px;
-            color: var(--accent-cyan);
-            margin-bottom: 40px;
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        .control-panel {
-            background: rgba(255,255,255,0.05);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border: var(--border);
-        }
-
-        .switch-row {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 5px;
-        }
+        .app-container { display: flex; height: 100%; max-width: 1600px; margin: 0 auto; width: 100%; }
+        .sidebar { width: 320px; background: rgba(10, 10, 12, 0.5); border-right: var(--border); padding: 30px; display: flex; flex-direction: column; backdrop-filter: blur(20px); z-index: 10; }
+        .brand { font-family: var(--font-stack); font-size: 0.9rem; letter-spacing: 1px; color: var(--accent-cyan); margin-bottom: 40px; display: flex; align-items: center; gap: 10px; }
+        .control-panel { background: rgba(255,255,255,0.05); border-radius: 16px; padding: 20px; margin-bottom: 20px; border: var(--border); }
+        .main-stage { flex: 1; padding: 40px; overflow-y: auto; position: relative; }
         
-        /* Toggle Switch */
-        .toggle {
-            position: relative; width: 44px; height: 24px;
+        /* Buttons */
+        .btn-mode {
+            width: 100%; padding: 12px; margin-top: 10px;
+            background: rgba(255,255,255,0.05); border: var(--border);
+            color: var(--text-sub); border-radius: 8px; cursor: pointer;
+            font-family: var(--font-stack); font-size: 0.75rem;
+            transition: all 0.2s; text-align: left; display: flex; justify-content: space-between;
         }
-        .toggle input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #333; border-radius: 34px; transition: .4s;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px;
-            background-color: white; border-radius: 50%; transition: .4s;
-        }
-        input:checked + .slider { background-color: var(--accent-purple); }
-        input:checked + .slider:before { transform: translateX(20px); }
+        .btn-mode:hover { background: rgba(255,255,255,0.1); color: #fff; }
+        .btn-mode.active { background: rgba(0, 210, 255, 0.15); border-color: var(--accent-cyan); color: var(--accent-cyan); }
 
-        /* --- MAIN DASHBOARD --- */
-        .main-stage {
-            flex: 1;
-            padding: 40px;
-            overflow-y: auto;
-            position: relative;
-        }
-
-        header {
-            display: flex; justify-content: space-between; align-items: flex-end;
-            margin-bottom: 40px;
-        }
-
-        h1 { margin: 0; font-weight: 500; font-size: 2.2rem; letter-spacing: -0.5px; }
-        .live-indicator {
-            font-family: var(--font-stack);
-            font-size: 0.8rem;
-            color: var(--text-sub);
-            display: flex; align-items: center; gap: 8px;
-        }
-        .pulse {
-            width: 8px; height: 8px; border-radius: 50%;
-            background: var(--text-sub);
-            box-shadow: 0 0 0 0 rgba(255,255,255, 0.1);
-        }
-        .pulse.active {
-            background: var(--accent-green);
-            animation: pulse-green 2s infinite;
-        }
-        .pulse.dead {
-            background: var(--accent-red);
-            box-shadow: 0 0 10px var(--accent-red);
-        }
-
-        @keyframes pulse-green {
-            0% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(48, 209, 88, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(48, 209, 88, 0); }
-        }
-
-        /* --- METRICS GRID --- */
-        .metrics-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .metric-card {
-            background: var(--card-glass);
-            border: var(--border);
-            border-radius: 20px;
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s;
-        }
-        .metric-card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.2); }
-
+        /* Chart & Metrics */
+        .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-bottom: 30px; }
+        .metric-card { background: var(--card-glass); border: var(--border); border-radius: 20px; padding: 24px; transition: transform 0.2s; }
         .metric-label { font-family: var(--font-stack); font-size: 0.75rem; color: var(--text-sub); letter-spacing: 1px; text-transform: uppercase; }
-        .metric-val { font-size: 2.8rem; font-weight: 600; margin-top: 8px; letter-spacing: -1px; }
+        .metric-val { font-size: 2.5rem; font-weight: 600; margin-top: 8px; letter-spacing: -1px; }
         .metric-unit { font-size: 1rem; color: var(--text-sub); font-weight: 400; margin-left: 4px; }
-
-        /* --- GRAPH --- */
-        .chart-wrapper {
-            background: var(--card-glass);
-            border: var(--border);
-            border-radius: 20px;
-            padding: 25px;
-            height: 350px;
-            position: relative;
-            margin-bottom: 30px;
-        }
-
-        /* --- EDUCATIONAL FEEDBACK (The "Professor") --- */
-        .edu-panel {
-            background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%);
-            border: 1px solid var(--accent-cyan);
-            border-radius: 20px;
-            padding: 30px;
-            position: relative;
-            overflow: hidden;
-            transition: all 0.5s ease;
-        }
-
-        .edu-panel::before {
-            content: ""; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-            background: var(--accent-cyan);
-            box-shadow: 0 0 15px var(--accent-cyan);
-        }
-
-        .edu-header {
-            display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;
-        }
-        .edu-title { font-size: 1.2rem; font-weight: 600; color: var(--accent-cyan); }
-        .edu-badge {
-            background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan);
-            padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; font-family: var(--font-stack);
-        }
-
-        .edu-content { font-size: 1.05rem; line-height: 1.6; color: rgba(255,255,255,0.9); max-width: 800px; }
         
-        .formula-box {
-            margin-top: 15px;
-            padding: 15px;
-            background: rgba(0,0,0,0.3);
-            border-radius: 10px;
-            font-family: var(--font-stack);
-            font-size: 0.9rem;
-            color: var(--accent-purple);
-            display: none; /* Hidden by default */
-            border-left: 2px solid var(--accent-purple);
-        }
+        .chart-wrapper { background: var(--card-glass); border: var(--border); border-radius: 20px; padding: 25px; height: 350px; position: relative; margin-bottom: 30px; }
 
-        /* --- MOBILE ADAPTATION --- */
+        /* Edu Panel */
+        .edu-panel { background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.01) 100%); border: 1px solid var(--accent-cyan); border-radius: 20px; padding: 30px; position: relative; transition: all 0.5s ease; border-left: 4px solid var(--accent-cyan); }
+        .edu-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .edu-title { font-size: 1.2rem; font-weight: 600; color: var(--accent-cyan); }
+        .edu-badge { background: rgba(0, 210, 255, 0.1); color: var(--accent-cyan); padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 600; font-family: var(--font-stack); }
+        .formula-box { margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.3); border-radius: 10px; font-family: var(--font-stack); font-size: 0.9rem; color: var(--accent-purple); display: none; }
+
+        /* Utilities */
+        h1 { margin: 0; font-weight: 500; font-size: 2.2rem; letter-spacing: -0.5px; }
+        header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 40px; }
+        .live-indicator { font-family: var(--font-stack); font-size: 0.8rem; color: var(--text-sub); display: flex; align-items: center; gap: 8px; }
+        .pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--text-sub); }
+        .pulse.active { background: var(--accent-green); box-shadow: 0 0 10px var(--accent-green); }
+        
         @media (max-width: 850px) {
             .app-container { flex-direction: column; }
-            .sidebar { width: 100%; height: auto; padding: 20px; flex-direction: row; align-items: center; justify-content: space-between; }
-            .control-panel { margin: 0; padding: 10px 20px; }
-            .brand span { display: none; } /* Hide text on mobile logo */
-            .main-stage { padding: 20px; }
+            .sidebar { width: auto; height: auto; }
             .metrics-grid { grid-template-columns: 1fr 1fr; }
-            h1 { font-size: 1.5rem; }
-            .metric-val { font-size: 2rem; }
         }
-        
-        /* Loading Overlay */
-        .overlay {
-            position: absolute; inset: 0; background: rgba(10,10,12,0.8);
-            backdrop-filter: blur(8px); z-index: 50;
-            display: flex; flex-direction: column; justify-content: center; align-items: center;
-            transition: opacity 0.3s;
-        }
-        .overlay.hidden { opacity: 0; pointer-events: none; }
-        .spinner {
-            width: 40px; height: 40px; border: 3px solid rgba(255,255,255,0.1);
-            border-top-color: var(--accent-cyan); border-radius: 50%;
-            animation: spin 0.8s infinite linear; margin-bottom: 20px;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
     </style>
 </head>
 <body>
@@ -248,66 +94,65 @@
             </div>
 
             <div class="control-panel">
-                <div class="switch-row">
-                    <span style="font-size: 0.9rem; color: #fff;">Physics Mode</span>
-                    <label class="toggle">
-                        <input type="checkbox" id="physics-toggle" onchange="togglePhysics()">
-                        <span class="slider"></span>
-                    </label>
+                <div style="font-size: 0.8rem; color: #fff; margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1px;">Operating Modes</div>
+                
+                <button class="btn-mode active" id="btn-0" onclick="setMode(0)">
+                    <span>MANUAL / STOP</span> <span style="opacity:0.5">●</span>
+                </button>
+                
+                <button class="btn-mode" id="btn-1" onclick="setMode(1)">
+                    <span>PATTERN A: INTERVAL</span> <span style="opacity:0.5">A</span>
+                </button>
+                
+                <button class="btn-mode" id="btn-2" onclick="setMode(2)">
+                    <span>PATTERN B: RAMP</span> <span style="opacity:0.5">B</span>
+                </button>
+            </div>
+            
+            <div class="control-panel">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-size: 0.9rem; color: #fff;">Physics Details</span>
+                    <input type="checkbox" id="physics-toggle" onchange="togglePhysics()">
                 </div>
-                <p style="font-size: 0.75rem; color: var(--text-sub); margin: 8px 0 0 0;">
-                    Shows formulas and electromagnetic principles.
-                </p>
             </div>
             
             <div style="margin-top: auto; font-size: 0.75rem; color: var(--text-sub); font-family: var(--font-stack);">
-                SYSTEM STATUS<br>
-                <span id="uptime">00:00:00</span>
+                STATUS: <span id="mode-text">IDLE</span>
             </div>
         </nav>
 
         <main class="main-stage">
             <header>
                 <div>
-                    <h1>Electromechanical Analysis</h1>
-                    <p style="color: var(--text-sub); margin-top: 5px;">Live monitoring of DC Motor parameters.</p>
+                    <h1>System Telemetry</h1>
+                    <p style="color: var(--text-sub); margin-top: 5px;">Real-time electromechanical analysis.</p>
                 </div>
                 <div class="live-indicator">
-                    <span id="status-text">CONNECTING</span>
+                    <span id="status-text">OFFLINE</span>
                     <div class="pulse" id="status-dot"></div>
                 </div>
             </header>
 
             <div class="metrics-grid">
                 <div class="metric-card">
-                    <div class="metric-label">Input Voltage</div>
-                    <div class="metric-val"><span id="val-v">--</span><span class="metric-unit">V</span></div>
+                    <div class="metric-label">Voltage</div>
+                    <div class="metric-val"><span id="val-v">0.00</span><span class="metric-unit">V</span></div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Current Draw</div>
-                    <div class="metric-val"><span id="val-i">--</span><span class="metric-unit">A</span></div>
+                    <div class="metric-label">Current</div>
+                    <div class="metric-val"><span id="val-i">0.00</span><span class="metric-unit">A</span></div>
                 </div>
                 <div class="metric-card">
-                    <div class="metric-label">Rotor Speed</div>
-                    <div class="metric-val"><span id="val-rpm">--</span><span class="metric-unit">RPM</span></div>
+                    <div class="metric-label">RPM</div>
+                    <div class="metric-val"><span id="val-rpm">0</span><span class="metric-unit">RPM</span></div>
                 </div>
-                
-                <div class="metric-card" style="border-color: rgba(255, 214, 10, 0.3);">
-                    <div class="metric-label" style="color: var(--accent-amber)">Est. Torque</div>
-                    <div class="metric-val" style="color: var(--accent-amber)"><span id="val-t">--</span><span class="metric-unit">Nm</span></div>
-                </div>
-
                 <div class="metric-card" style="border-color: rgba(191, 90, 242, 0.3);">
-                    <div class="metric-label" style="color: var(--accent-purple)">Power Output</div>
-                    <div class="metric-val" style="color: var(--accent-purple)"><span id="val-p">--</span><span class="metric-unit">W</span></div>
+                    <div class="metric-label" style="color: var(--accent-purple)">Power</div>
+                    <div class="metric-val" style="color: var(--accent-purple)"><span id="val-p">0.00</span><span class="metric-unit">W</span></div>
                 </div>
             </div>
 
             <div class="chart-wrapper">
-                <div class="overlay" id="chart-overlay">
-                    <div class="spinner"></div>
-                    <div style="font-family: var(--font-stack); color: var(--accent-cyan);">AWAITING DATA STREAM</div>
-                </div>
                 <canvas id="mainChart"></canvas>
             </div>
 
@@ -316,280 +161,177 @@
                     <div class="edu-title" id="edu-title">System Standby</div>
                     <div class="edu-badge" id="edu-badge">IDLE</div>
                 </div>
-                <div class="edu-content" id="edu-msg">
-                    The ESP32 controller is waiting for a valid power connection. Please verify the 12V supply to the stator coils.
-                </div>
-                <div class="formula-box" id="formula-box">
-                    </div>
+                <div class="edu-content" id="edu-msg">Waiting for ESP32 connection...</div>
+                <div class="formula-box" id="formula-box"></div>
             </div>
         </main>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
-        const AUTH = "iagxsAFxs8gDX9dFuZIRFeXNTA9XQKGV";
+        // REPLACE WITH YOUR BLYNK AUTH TOKEN
+        const AUTH = "iagxsAFxs8gDX9dFuZIRFeXNTA9XQKGV"; 
         const REGION = "blynk.cloud";
-        // V3 is our new "Heartbeat" pin from the ESP32
-        const PINS = `&V0&V1&V2&V3`; 
-
-        // --- STATE ---
-        let chartInstance;
-        let lastHeartbeatTime = 0; // Timestamp of last valid data
-        let isOnline = false;
-        let showPhysics = false;
         
-        // --- INIT ---
+        // V0=Voltage, V1=Current, V2=RPM, V3=Heartbeat, V4=CurrentModeIndex
+        const PINS = `&V0&V1&V2&V3&V4`; 
+
+        let chartInstance;
+        let lastHeartbeatTime = 0;
+        let showPhysics = false;
+
         window.onload = function() {
             initChart();
-            setInterval(fetchData, 1000); // Fetch every 1s
-            setInterval(checkHeartbeat, 1000); // Check for "death" every 1s
-            setInterval(updateUptime, 1000);
-            fetchData();
+            setInterval(fetchData, 1000); 
+            setInterval(checkHeartbeat, 2000); 
         };
 
+        // --- CONTROL LOGIC ---
+        async function setMode(modeIndex) {
+            // Update UI immediately
+            document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+            document.getElementById(`btn-${modeIndex}`).classList.add('active');
+            
+            // Send to ESP32 via Pin V10 (Command Pin)
+            try {
+                await fetch(`https://${REGION}/external/api/update?token=${AUTH}&V10=${modeIndex}`);
+                console.log("Mode Set to:", modeIndex);
+            } catch (e) { console.error("Failed to set mode"); }
+        }
+
+        // --- DATA LOGIC ---
+        async function fetchData() {
+            try {
+                const response = await fetch(`https://${REGION}/external/api/get?token=${AUTH}${PINS}`);
+                if (!response.ok) return;
+                const data = await response.json();
+                
+                const v = parseFloat(data.V0) || 0;
+                const i = parseFloat(data.V1) || 0;
+                const rpm = parseFloat(data.V2) || 0;
+                const heartbeat = parseInt(data.V3) || 0;
+                const serverMode = parseInt(data.V4) || 0;
+
+                lastHeartbeatTime = Date.now();
+                updateUI(true, v, i, rpm, serverMode);
+
+            } catch (e) { console.log("Conn Error"); }
+        }
+
+        function checkHeartbeat() {
+            if (Date.now() - lastHeartbeatTime > 3500) updateUI(false);
+        }
+
+        function updateUI(online, v=0, i=0, rpm=0, mode=0) {
+            const dot = document.getElementById('status-dot');
+            const txt = document.getElementById('status-text');
+            const modeTxt = document.getElementById('mode-text');
+            const p = v * i;
+
+            if (online) {
+                dot.className = "pulse active";
+                txt.innerText = "LIVE";
+                txt.style.color = "#30d158";
+
+                // Sync Mode Button if changed by ESP
+                document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
+                if(document.getElementById(`btn-${mode}`)) 
+                    document.getElementById(`btn-${mode}`).classList.add('active');
+
+                // Update Values
+                document.getElementById('val-v').innerText = v.toFixed(2);
+                document.getElementById('val-i').innerText = i.toFixed(2);
+                document.getElementById('val-rpm').innerText = rpm.toFixed(0);
+                document.getElementById('val-p').innerText = p.toFixed(2);
+
+                // Chart
+                const now = new Date().toLocaleTimeString();
+                chartInstance.data.labels.push(now);
+                chartInstance.data.datasets[0].data.push(rpm);
+                if (chartInstance.data.labels.length > 20) {
+                    chartInstance.data.labels.shift();
+                    chartInstance.data.datasets[0].data.shift();
+                }
+                chartInstance.update();
+                
+                analyzePhysics(v, i, rpm, p, mode);
+            } else {
+                dot.className = "pulse";
+                txt.innerText = "OFFLINE";
+                txt.style.color = "#ff453a";
+            }
+        }
+
+        function analyzePhysics(v, i, rpm, p, mode) {
+            const panel = document.getElementById('edu-panel');
+            const formulaBox = document.getElementById('formula-box');
+            formulaBox.style.display = document.getElementById('physics-toggle').checked ? 'block' : 'none';
+
+            let title = "System Idle";
+            let msg = "Motor is stationary.";
+            let color = "#8b8b93";
+
+            if (mode === 1) {
+                title = "Pattern A: Interval Training";
+                msg = "Executing High-Load / Low-Load cycle. Notice how Current (I) spikes when RPM accelerates (Torque generation), and drops during 'Chill' phases.";
+                color = "#bf5af2"; // Purple
+                formulaBox.innerHTML = "Cycle: Max &rarr; Rest &rarr; Mid &rarr; Rest";
+            } else if (mode === 2) {
+                title = "Pattern B: Linear Ramp";
+                msg = "Gradually increasing voltage. Observe the linear relationship between Voltage (V) and RPM. Back-EMF increases proportionally with speed.";
+                color = "#00d2ff"; // Cyan
+                formulaBox.innerHTML = "V_terminal &prop; RPM";
+            } else if (v > 1) {
+                title = "Manual Operation";
+                msg = `Motor running at constant velocity. Input Power is ${p.toFixed(1)}W.`;
+                color = "#30d158";
+            }
+
+            document.getElementById('edu-title').innerText = title;
+            document.getElementById('edu-title').style.color = color;
+            document.getElementById('edu-msg').innerHTML = msg;
+            panel.style.borderLeftColor = color;
+            document.getElementById('edu-badge').innerText = `MODE ${mode}`;
+            document.getElementById('edu-badge').style.color = color;
+            document.getElementById('edu-badge').style.background = color + "20";
+        }
+
         function togglePhysics() {
-            showPhysics = document.getElementById('physics-toggle').checked;
-            // Force re-render of feedback logic
-            const v = parseFloat(document.getElementById('val-v').innerText) || 0;
-            const i = parseFloat(document.getElementById('val-i').innerText) || 0;
-            const rpm = parseFloat(document.getElementById('val-rpm').innerText) || 0;
-            analyzePhysics(v, i, rpm, v*i);
+            // Refreshes view next cycle
         }
 
-        function updateUptime() {
-            if(!isOnline) return;
-            // Just a visual clock
-            const now = new Date();
-            document.getElementById('uptime').innerText = now.toLocaleTimeString();
-        }
-
-        // --- CHART ---
         function initChart() {
             const ctx = document.getElementById('mainChart').getContext('2d');
-            
-            // Create Gradient
             const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-            gradient.addColorStop(0, 'rgba(0, 210, 255, 0.2)');
-            gradient.addColorStop(1, 'rgba(0, 210, 255, 0)');
+            gradient.addColorStop(0, 'rgba(191, 90, 242, 0.2)');
+            gradient.addColorStop(1, 'rgba(191, 90, 242, 0)');
 
             chartInstance = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: [],
                     datasets: [{
-                        label: 'Power (W)',
-                        data: [],
-                        borderColor: '#00d2ff',
-                        backgroundColor: gradient,
-                        borderWidth: 2,
-                        pointRadius: 0,
-                        fill: true,
-                        tension: 0.4
-                    },
-                    {
                         label: 'RPM',
                         data: [],
-                        borderColor: '#bf5af2', // Purple
+                        borderColor: '#bf5af2',
+                        backgroundColor: gradient,
                         borderWidth: 2,
-                        pointRadius: 0,
-                        borderDash: [5, 5],
-                        yAxisID: 'y1',
-                        tension: 0.4
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 0
                     }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     animation: false,
-                    interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { display: false } },
                     scales: {
                         x: { display: false },
-                        y: { 
-                            beginAtZero: true, 
-                            grid: { color: 'rgba(255,255,255,0.05)' },
-                            ticks: { color: '#8b8b93' }
-                        },
-                        y1: { 
-                            position: 'right', 
-                            display: true, 
-                            grid: { display: false },
-                            ticks: { color: '#bf5af2' }
-                        }
+                        y: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#8b8b93' } }
                     }
                 }
             });
         }
-
-        // --- CORE LOGIC ---
-        async function fetchData() {
-            try {
-                // Fetch V0(V), V1(I), V2(RPM), V3(Heartbeat)
-                const response = await fetch(`https://${REGION}/external/api/get?token=${AUTH}${PINS}`);
-                if (!response.ok) throw new Error("Net Error");
-                
-                const data = await response.json(); // Blynk returns key-value pairs for multi-pin fetch
-                
-                // Parse Data
-                const v = parseFloat(data.V0) || 0;
-                const i = parseFloat(data.V1) || 0;
-                const rpm = parseFloat(data.V2) || 0;
-                const heartbeat = parseInt(data.V3) || 0;
-
-                // HEARTBEAT CHECK
-                if (heartbeat !== lastHeartbeatValue) {
-                    lastHeartbeatTime = Date.now(); // Update "Alive" timestamp
-                    lastHeartbeatValue = heartbeat;
-                    updateUI(true, v, i, rpm);
-                }
-
-            } catch (e) {
-                // Network error (WiFi cut entirely)
-                console.log(e);
-            }
-        }
-        
-        let lastHeartbeatValue = -1;
-
-        function checkHeartbeat() {
-            // IF current time - last valid data time > 3500ms (3.5 seconds)
-            // THEN declare DEAD immediately.
-            if (Date.now() - lastHeartbeatTime > 3500) {
-                if(isOnline) updateUI(false);
-            }
-        }
-
-        function updateUI(online, v=0, i=0, rpm=0) {
-            const dot = document.getElementById('status-dot');
-            const txt = document.getElementById('status-text');
-            const overlay = document.getElementById('chart-overlay');
-            
-            // MATH
-            const p = v * i;
-            
-            // Calculate Torque: T = (Power * Efficiency) / AngularVelocity
-            // Efficiency assumed 60% (0.6) for standard kit motors
-            const rads = rpm * 0.10472;
-            let torque = 0;
-            
-            if (rads > 1.0) {
-                torque = (p * 0.6) / rads;
-            } else if (i > 0.5) {
-                // Stall condition approximation (optional, kept simple here as 0)
-                torque = 0; 
-            }
-
-            if (online) {
-                isOnline = true;
-                dot.className = "pulse active";
-                txt.innerText = "LIVE DATA";
-                txt.style.color = "var(--accent-green)";
-                overlay.classList.add('hidden');
-
-                // Update DOM
-                document.getElementById('val-v').innerText = v.toFixed(2);
-                document.getElementById('val-i').innerText = i.toFixed(2);
-                document.getElementById('val-rpm').innerText = rpm.toFixed(0);
-                document.getElementById('val-p').innerText = p.toFixed(2);
-                document.getElementById('val-t').innerText = torque.toFixed(3); // NEW
-
-                // Update Chart
-                const now = new Date().toLocaleTimeString();
-                chartInstance.data.labels.push(now);
-                chartInstance.data.datasets[0].data.push(p);
-                chartInstance.data.datasets[1].data.push(rpm);
-                
-                if (chartInstance.data.labels.length > 30) {
-                    chartInstance.data.labels.shift();
-                    chartInstance.data.datasets[0].data.shift();
-                    chartInstance.data.datasets[1].data.shift();
-                }
-                chartInstance.update();
-
-                analyzePhysics(v, i, rpm, p, torque);
-
-            } else {
-                isOnline = false;
-                dot.className = "pulse dead";
-                txt.innerText = "OFFLINE";
-                txt.style.color = "var(--accent-red)";
-                overlay.classList.remove('hidden');
-                
-                // Reset Panel
-                setPanel("System Disconnected", "OFFLINE", "Connection to P2G01 Kit lost. Waiting for heartbeat signal...", "#ff453a");
-            }
-        }
-
-        // --- THE PROFESSOR ENGINE ---
-        function analyzePhysics(v, i, rpm, p, t) {
-            const panel = document.getElementById('edu-panel');
-            const formulaBox = document.getElementById('formula-box');
-            
-            // Toggle formula visibility
-            formulaBox.style.display = showPhysics ? 'block' : 'none';
-
-            if (v < 0.5) {
-                setPanel("System Idle", "STANDBY", 
-                    "The circuit is open or power supply is off. No potential difference detected across the terminals.", 
-                    "#8b8b93");
-                formulaBox.innerHTML = `V<sub>in</sub> = 0V <br> I = 0A`;
-            }
-            else if (i > 1.5 && rpm < 50) {
-                // STALL
-                setPanel("Locked Rotor (Stall)", "CRITICAL", 
-                    "Rotor is stationary. <strong>Back-EMF is Zero</strong>. The motor acts as a purely resistive load, causing current to spike. Torque is at maximum (Stall Torque).", 
-                    "#ff453a");
-                panel.style.borderLeft = "4px solid #ff453a";
-                formulaBox.innerHTML = `
-                    <span style="color:#ff453a">Stall Condition:</span><br>
-                    &omega; = 0 rad/s &there4; E<sub>b</sub> = 0<br>
-                    I<sub>stall</sub> = V / R<sub>armature</sub>
-                `;
-            }
-            else if (rpm > 200 && i < 0.3) {
-                // HIGH EFFICIENCY
-                setPanel("High Efficiency State", "NOMINAL", 
-                    "Motor is spinning freely. The rotating armature generates a high <strong>Back-EMF</strong> that opposes the supply voltage, limiting current draw. Torque is low.", 
-                    "#30d158");
-                 panel.style.borderLeft = "4px solid #30d158";
-                 formulaBox.innerHTML = `
-                    <span style="color:#30d158">Back-EMF Effect:</span><br>
-                    V = I R + E<sub>b</sub><br>
-                    &tau; &approx; 0 Nm
-                `;
-            }
-            else {
-                // LOADED
-                setPanel("Operational Load", "RUNNING", 
-                    `Motor is converting Electrical Power (${p.toFixed(1)}W) into Mechanical Torque (${t ? t.toFixed(3) : 0} Nm). Current increases to provide required torque.`, 
-                    "#00d2ff");
-                panel.style.borderLeft = "4px solid #00d2ff";
-                formulaBox.innerHTML = `
-                    P<sub>in</sub> = V &times; I<br>
-                    &tau; = (P<sub>in</sub> &times; &eta;) / &omega;
-                `;
-            }
-        }
-
-        function setPanel(title, badge, msg, color) {
-            document.getElementById('edu-title').innerText = title;
-            document.getElementById('edu-title').style.color = color;
-            
-            const badgeEl = document.getElementById('edu-badge');
-            badgeEl.innerText = badge;
-            badgeEl.style.color = color;
-            badgeEl.style.background = color + "20"; // 20 hex = low opacity
-            
-            document.getElementById('edu-msg').innerHTML = msg;
-            
-            const panel = document.getElementById('edu-panel');
-            panel.style.borderColor = color;
-            
-            const pbox = document.getElementById('formula-box');
-            pbox.style.borderLeftColor = color;
-            pbox.style.color = color;
-        }
-
     </script>
 </body>
 </html>
