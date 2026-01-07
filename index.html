@@ -154,21 +154,21 @@
     <script>
         const AUTH = "iagxsAFxs8gDX9dFuZIRFeXNTA9XQKGV"; 
         const REGION = "blynk.cloud";
-        const PINS = `&V0&V1&V2&V4&V6`; // Added V6 for Torque
+        // We fetch V6 explicitly here
+        const PINS = `&V0&V1&V2&V4&V6`; 
 
         let chartInstance;
-        let lastUserAction = 0; // Fixes the slider fighting issue
+        let lastUserAction = 0;
 
         window.onload = function() {
             initChart();
             setInterval(fetchData, 1000); 
-            // Default show slider
             document.getElementById('manual-slider-box').classList.add('show');
         };
 
-        // 1. CONTROL FUNCTIONS (With Interaction Lock)
+        // 1. CONTROL FUNCTIONS
         async function setMode(modeIndex) {
-            lastUserAction = Date.now(); // Lock sync for 3 seconds
+            lastUserAction = Date.now(); // Interaction Lock
 
             // UI Update Immediately
             document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
@@ -178,8 +178,9 @@
             if(modeIndex === 0) sliderBox.classList.add('show');
             else sliderBox.classList.remove('show');
 
-            // Send to Hardware
-            fetch(`https://${REGION}/external/api/update?token=${AUTH}&V10=${modeIndex}`);
+            // CRITICAL FIX: Sending to V4 (Mode Pin) instead of V10
+            // This prevents the "switch back" glitch
+            fetch(`https://${REGION}/external/api/update?token=${AUTH}&V4=${modeIndex}`);
         }
 
         function updateSpeedLabel(val) {
@@ -188,25 +189,25 @@
         }
 
         async function sendSpeed(val) {
-            lastUserAction = Date.now(); // Lock sync for 3 seconds
+            lastUserAction = Date.now(); 
             fetch(`https://${REGION}/external/api/update?token=${AUTH}&V5=${val}`);
         }
 
         // 2. DATA SYNC LOOP
         async function fetchData() {
             try {
+                // Fetch V0(V), V1(A), V2(RPM), V4(Mode), V6(Torque)
                 const response = await fetch(`https://${REGION}/external/api/get?token=${AUTH}${PINS}`);
                 if (!response.ok) return;
                 const data = await response.json();
                 
-                // Parse Data
                 const v = parseFloat(data.V0) || 0;
                 const i = parseFloat(data.V1) || 0;
                 const rpm = parseFloat(data.V2) || 0;
                 const torque = parseFloat(data.V6) || 0;
                 const mode = parseInt(data.V4) || 0;
 
-                // Update Metrics (Always update these)
+                // Update Metrics
                 document.getElementById('val-v').innerText = v.toFixed(1);
                 document.getElementById('val-i').innerText = i.toFixed(2);
                 document.getElementById('val-rpm').innerText = rpm.toFixed(0);
@@ -227,7 +228,7 @@
                 chartInstance.update();
 
                 // 3. CONTROL SYNC (CONDITIONAL)
-                // Only overwrite buttons if user hasn't clicked recently
+                // Only sync buttons if user hasn't clicked recently (3s cooldown)
                 if (Date.now() - lastUserAction > 3000) {
                     document.querySelectorAll('.btn-mode').forEach(b => b.classList.remove('active'));
                     if(document.getElementById(`btn-${mode}`)) {
