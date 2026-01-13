@@ -94,14 +94,6 @@
                     </div>
                     <input type="range" min="0" max="255" value="0" oninput="updateSpeedLabel(this.value)" onchange="sendSpeed(this.value)">
                 </div>
-
-                <button class="btn-mode" id="btn-1" onclick="setMode(1)">
-                    <span>PATTERN A: INTERVAL</span> <span>A</span>
-                </button>
-                
-                <button class="btn-mode" id="btn-2" onclick="setMode(2)">
-                    <span>PATTERN B: RAMP</span> <span>B</span>
-                </button>
             </div>
             
             <div class="control-panel">
@@ -154,7 +146,6 @@
     <script>
         const AUTH = "iagxsAFxs8gDX9dFuZIRFeXNTA9XQKGV"; 
         const REGION = "blynk.cloud";
-        // We fetch V6 explicitly here
         const PINS = `&V0&V1&V2&V4&V6`; 
 
         let chartInstance;
@@ -163,6 +154,7 @@
         window.onload = function() {
             initChart();
             setInterval(fetchData, 1000); 
+            // Default show slider
             document.getElementById('manual-slider-box').classList.add('show');
         };
 
@@ -178,8 +170,6 @@
             if(modeIndex === 0) sliderBox.classList.add('show');
             else sliderBox.classList.remove('show');
 
-            // CRITICAL FIX: Sending to V4 (Mode Pin) instead of V10
-            // This prevents the "switch back" glitch
             fetch(`https://${REGION}/external/api/update?token=${AUTH}&V4=${modeIndex}`);
         }
 
